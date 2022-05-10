@@ -1,11 +1,16 @@
 package com.p6majo.image;
 
 import com.p6majo.logger.Logger;
+import com.p6majo.math.linalg.Vector3D;
+import com.p6majo.raytracing.Camera;
+import com.p6majo.raytracing.Ray;
+import com.p6majo.raytracing.Renderer;
 
 import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Function;
 
 /**
  * The class PPMImage
@@ -98,19 +103,31 @@ public class PPMImage {
      */
 
 
-    public void render(String path){
+    public void render(Renderer renderer, String path){
         try (FileWriter fw = new FileWriter(path)) {
             fw.write("P3\n");
             fw.write(width+" "+height+"\n");
             fw.write("255\n");
 
+            Camera cam = renderer.getCamera();
+
+            Vector3D origin = cam.getOrigin();
+            Vector3D lowerLeftCorner = cam.getLowerLeftCorner();
+            Vector3D horizontal = cam.getHorizontal();
+            Vector3D vertical = cam.getVertical();
+
+            Function<Ray,Color> rayColorFunction = renderer.getRayColorFunction();
+
             if (this.colors!=null) {
                 for (int h = 0; h < height; h++) {
                     for (int w = 0; w < width; w++) {
-                        Color color = this.colors[w + h * width];
-                        int red = color.getRed();
-                        int green = color.getGreen();
-                        int blue = color.getBlue();
+                        double u = (double) w/ (width-1);
+                        double v = (double) h/ (height-1);
+                        Ray ray = new Ray(origin, lowerLeftCorner.add(horizontal.mul(u)).add(vertical.mul(v)).sub(origin));
+                        Color pixColor = rayColorFunction.apply(ray);
+                        int red = pixColor.getRed();
+                        int green = pixColor.getGreen();
+                        int blue = pixColor.getBlue();
                         fw.write(red+" "+green+" "+blue+" ");
                     }
                     fw.write("\n");

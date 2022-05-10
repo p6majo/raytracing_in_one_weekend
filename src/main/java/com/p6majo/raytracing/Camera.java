@@ -1,19 +1,14 @@
-package com.p6majo.main;
-import com.p6majo.math.linalg.Vector3D;
-import com.p6majo.raytracing.Camera;
-import com.p6majo.raytracing.Ray;
-import com.p6majo.raytracing.Renderer;
+package com.p6majo.raytracing;
 
-import java.awt.Color;
-import java.util.function.Function;
+import com.p6majo.math.linalg.Vector3D;
 
 /**
- * The class RayTracing
+ * The class Camera
  *
  * @author p6maj
  * @version 2022-05-10
  */
-public class RayTracing {
+public class Camera {
 
 
     /*
@@ -22,6 +17,15 @@ public class RayTracing {
      *********************************************
      */
 
+    private double aspectRatio = 16./9;
+    private double viewportHeight=2.0;
+    private double viewportWidth=aspectRatio*viewportHeight;
+    private double focalLength = 1.;
+
+    Vector3D origin = Vector3D.getZERO();
+    Vector3D horizontal = new Vector3D(viewportWidth,0,0);
+    Vector3D vertical = new Vector3D(0,viewportHeight,0);
+    Vector3D lowerLeftCorner = origin.sub(horizontal.mul(0.5)).sub(vertical.mul(0.5)).sub(new Vector3D(0,0,focalLength));
 
 
     /*
@@ -30,16 +34,19 @@ public class RayTracing {
      **********************************************
      */
 
-    public RayTracing(){
-        Function<Ray, Color> rayColorFunction =
-                ray -> {
-                    Vector3D unitDirection = ray.getDirection().normalize();
-                    double t = 0.5*(unitDirection.getY()+1.);
-                    return new Color((int) ((1.-t)*255+t*178),(int)((1-t)*255+t*0.7*255),255);
-                };
+    public Camera(double aspectRatio,double viewportHeight,double focalLength){
+        this.aspectRatio=aspectRatio;
+        this.viewportHeight=viewportHeight;
+        this.viewportWidth=aspectRatio*viewportHeight;
+        this.focalLength = focalLength;
+    }
 
-        Renderer renderer = new Renderer(rayColorFunction);
-        renderer.render();
+
+    /**
+     * Constructor for a default camera
+     */
+    public Camera(){
+
     }
 
 
@@ -48,6 +55,26 @@ public class RayTracing {
      ***           Getters              ************
      ***********************************************
      */
+
+    public double getAspectRatio(){
+        return this.aspectRatio;
+    }
+
+    public Vector3D getOrigin(){
+        return this.origin;
+    }
+
+    public Vector3D getLowerLeftCorner(){
+        return this.lowerLeftCorner;
+    }
+
+    public Vector3D getHorizontal(){
+        return this.horizontal;
+    }
+
+    public Vector3D getVertical(){
+        return this.vertical;
+    }
 
     /*
      ***********************************************
@@ -61,6 +88,9 @@ public class RayTracing {
      ***********************************************
      */
 
+    public static Camera getDefaultCamera(){
+        return new Camera();
+    }
 
     /*
      ***********************************************
@@ -88,8 +118,5 @@ public class RayTracing {
         return super.toString();
     }
 
-    public static void main(String[] args) {
-        new RayTracing();
-    }
 
 }
