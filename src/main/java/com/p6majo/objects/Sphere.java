@@ -1,15 +1,14 @@
-package com.p6majo.raytracing;
+package com.p6majo.objects;
 
 import com.p6majo.math.linalg.Vector3D;
 
 /**
- * The class Ray
+ * The class Sphere
  *
- * @author p6maj
+ * @author p6majo
  * @version 2022-05-10
  */
-public class Ray {
-
+public class Sphere {
 
     /*
      *********************************************
@@ -17,8 +16,9 @@ public class Ray {
      *********************************************
      */
 
-    private Vector3D origin;
-    private Vector3D direction;
+    private double r;
+    private Vector3D center;
+
 
 
     /*
@@ -27,10 +27,9 @@ public class Ray {
      **********************************************
      */
 
-
-    public Ray(Vector3D origin, Vector3D direction) {
-        this.origin = origin;
-        this.direction = direction;
+    public Sphere(double r, Vector3D center) {
+        this.r = r;
+        this.center = center;
     }
 
     /*
@@ -39,18 +38,21 @@ public class Ray {
      ***********************************************
      */
 
-    public Vector3D getOrigin(){
-        return this.origin;
+    public Vector3D getCenter() {
+        return center;
     }
 
-    public Vector3D getDirection(){
-        return this.direction;
+    public double getR() {
+        return r;
     }
+
     /*
      ***********************************************
      ***           Setters              ************
      ***********************************************
      */
+
+
 
     /*
      ***********************************************
@@ -58,9 +60,6 @@ public class Ray {
      ***********************************************
      */
 
-    public Vector3D at(double t){
-        return origin.add(direction.mul(t));
-    }
 
     /*
      ***********************************************
@@ -75,8 +74,6 @@ public class Ray {
      ***********************************************
      */
 
-
-
     /*
      ***********************************************
      ***           toString             ************
@@ -85,8 +82,9 @@ public class Ray {
 
     @Override
     public String toString() {
-        return this.origin +"+"+this.direction+"*t";
+        return super.toString();
     }
+
 
 
 }

@@ -29,7 +29,6 @@ public class PPMImage {
 
     private int height;
     private int width;
-    private Color[] colors;
 
     /*
      **********************************************
@@ -38,30 +37,10 @@ public class PPMImage {
      */
 
 
-    public PPMImage(int width,int height, Color[] colors){
-
+    public PPMImage(int width,int height){
         this.height = height;
         this.width = width;
-        this.colors = colors;
     }
-
-    public PPMImage(int width, int height){
-        this(width,height,null);
-    }
-    
-    public PPMImage(int width,int height, boolean test){
-        this(width,height);
-        this.colors = new Color[width*height];
-        if (test){
-            for (int h = 0; h < height; h++) {
-                for (int w = 0; w < width; w++) {
-                    this.colors[w+h*width]=new Color((int) (255*h/(height-1)),(int) (255*w/(width-1)),(int) (255*0.25));
-                }
-            }
-        }
-        
-    }
-
 
     /*
      ***********************************************
@@ -75,26 +54,7 @@ public class PPMImage {
      ***********************************************
      */
 
-    public void setColors(Color... colors){
-        if (this.colors==null){
-            this.colors = new Color[this.width*this.height];
-        }
-        if (colors.length<height*width){
-            Logger.logging(Logger.Level.warning,"not enough colors for image dimension, some pixels are set to black");
-            System.arraycopy(colors,0,this.colors,0,colors.length);
-            for (int i = colors.length; i < this.colors.length; i++)
-                this.colors[i]=Color.BLACK;
-        }
-        else if (colors.length>height*width){
-            Logger.logging(Logger.Level.warning,"too colors for image dimension, some colors are omitted");
-            System.arraycopy(colors,0,this.colors,0,this.colors.length);
-        }
-        else{
-            this.colors = colors;
-        }
 
-
-    }
 
     /*
      ***********************************************
@@ -118,33 +78,29 @@ public class PPMImage {
 
             Function<Ray,Color> rayColorFunction = renderer.getRayColorFunction();
 
-            if (this.colors!=null) {
-                for (int h = 0; h < height; h++) {
-                    for (int w = 0; w < width; w++) {
-                        double u = (double) w/ (width-1);
-                        double v = (double) h/ (height-1);
-                        Ray ray = new Ray(origin, lowerLeftCorner.add(horizontal.mul(u)).add(vertical.mul(v)).sub(origin));
-                        Color pixColor = rayColorFunction.apply(ray);
-                        int red = pixColor.getRed();
-                        int green = pixColor.getGreen();
-                        int blue = pixColor.getBlue();
-                        fw.write(red+" "+green+" "+blue+" ");
-                    }
-                    fw.write("\n");
+            for (int h = 0; h < height; h++) {
+                for (int w = 0; w < width; w++) {
+                    double u = (double) w/ (width-1);
+                    double v = (double) h/ (height-1);
+                    Ray ray = new Ray(origin, lowerLeftCorner.add(horizontal.mul(u)).add(vertical.mul(v)).sub(origin));
+                    Color pixColor = rayColorFunction.apply(ray);
+                    int red = pixColor.getRed();
+                    int green = pixColor.getGreen();
+                    int blue = pixColor.getBlue();
+                    fw.write(red+" "+green+" "+blue+" ");
                 }
-              System.err.println("\nDone.");
+                fw.write("\n");
             }
-            else {
-                Logger.logging(Logger.Level.warning,"No colors were rendered, since the image is empty.");
-            }
+            System.err.println("\nDone.");
+
         } catch (IOException e) {
             e.printStackTrace();
             Logger.logging(Logger.Level.error,"File not found exception caused by path "+path);
         }
     }
-    
-    
-    
+
+
+
     /*
      ***********************************************
      ***           Private methods      ************

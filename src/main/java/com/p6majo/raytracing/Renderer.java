@@ -47,7 +47,7 @@ public class Renderer {
         this.rayColorFunction = rayColorFunction;
         double width=1920;
         double aspectRatio = this.camera.getAspectRatio();
-        double height = aspectRatio*width;
+        double height = width/aspectRatio;
         switch(quality){
             case LOW -> {
                 width*=0.25;
