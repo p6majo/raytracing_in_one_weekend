@@ -1,8 +1,12 @@
 package com.p6majo.raytracing;
 
 import com.p6majo.image.PPMImage;
+import com.p6majo.logger.Logger;
+import com.p6majo.math.linalg.Vector3D;
 
 import java.awt.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.function.Function;
 
 /**
@@ -22,7 +26,7 @@ public class Renderer {
 
     private Camera camera;
     private PPMImage image;
-    private String name = java.time.LocalTime.now()+"_DefaultImage.ppm";
+    private String name = (java.time.LocalTime.now()+"_DefaultImage.ppm").replace(':','-');
     public enum Quality {LOW,MEDIUM,HIGH};
 
     private Function<Ray,Color> rayColorFunction;
@@ -97,9 +101,37 @@ public class Renderer {
      ***********************************************
      */
 
+    /**
+     * Scan the entire view port of the camera and write the color of each pixel to
+     * a ppm image
+     * @param renderer
+     * @param path
+     */
     public void render(){
-        image.render(this,name);
+
+        int width = this.image.getWidth();
+        int height = this.image.getHeight();
+        Color[] colors = new Color[width*height];
+
+
+        Vector3D origin = this.camera.getOrigin();
+        Vector3D lowerLeftCorner = this.camera.getLowerLeftCorner();
+        Vector3D horizontal = this.camera.getHorizontal();
+        Vector3D vertical = this.camera.getVertical();
+
+        for (int h = 0; h < height; h++) {
+            for (int w = 0; w < width; w++) {
+                double u = (double) w / (width - 1);
+                double v = (double) h / (height - 1);
+                Ray ray = new Ray(origin, lowerLeftCorner.add(horizontal.mul(u)).add(vertical.mul(v)).sub(origin));
+                Color pixColor = rayColorFunction.apply(ray);
+                colors[w + h * width] = pixColor;
+            }
+        }
+        this.image.setColors(colors);
+        this.image.save(name);
     }
+
 
     /*
      ***********************************************
