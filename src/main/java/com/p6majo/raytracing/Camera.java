@@ -56,6 +56,10 @@ public class Camera {
      ***********************************************
      */
 
+    public Ray getRay(double u, double v){
+        return new Ray(origin,lowerLeftCorner.add(horizontal.mul(u)).add(vertical.mul(v)).sub(origin));
+    }
+
     public double getAspectRatio(){
         return this.aspectRatio;
     }

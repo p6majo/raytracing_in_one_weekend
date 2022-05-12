@@ -1,15 +1,18 @@
 package com.p6majo.objects;
 
-import com.p6majo.math.linalg.Vector3D;
 import com.p6majo.raytracing.Ray;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
- * The class HitRecord
+ * The class ListOfHittables
  *
  * @author p6maj
- * @version 2022-05-11
+ * @version 2022-05-12
  */
-public class HitRecord {
+public class ListOfHittables implements Hittable{
 
 
     /*
@@ -18,23 +21,18 @@ public class HitRecord {
      *********************************************
      */
 
-    private Vector3D p;
-    private Vector3D normal;
-    private double t;
-    private boolean frontFace;
-
+    List<Hittable> objectList;
     /*
      **********************************************
      ****           Constructors         **********
      **********************************************
      */
 
-    public HitRecord(Vector3D p, Vector3D normal, double t) {
-        this.p = p;
-        this.normal = normal;
-        this.t = t;
-    }
 
+
+    public ListOfHittables(){
+        objectList = new ArrayList<>();
+    }
 
     /*
      ***********************************************
@@ -42,35 +40,11 @@ public class HitRecord {
      ***********************************************
      */
 
-    public Vector3D getP() {
-        return p;
-    }
-
-    public Vector3D getNormal() {
-        return normal;
-    }
-
-    public double getT() {
-        return t;
-    }
-
     /*
      ***********************************************
      ***           Setters              ************
      ***********************************************
      */
-
-//    public void setP(Vector3D p) {
-//        this.p = p;
-//    }
-//
-//    public void setNormal(Vector3D normal) {
-//        this.normal = normal;
-//    }
-//
-//    public void setT(double t) {
-//        this.t = t;
-//    }
 
     /*
      ***********************************************
@@ -78,11 +52,15 @@ public class HitRecord {
      ***********************************************
      */
 
-    public void setFaceNormal(Ray ray, Vector3D outwardNormal){
-        frontFace = ray.getDirection().dot(outwardNormal)<0;
-        normal=frontFace? outwardNormal:outwardNormal.neg();
-
+    public void clear(){
+        this.objectList.clear();
     }
+
+    public void add(Hittable object){
+        this.objectList.add(object);
+    }
+
+
 
     /*
      ***********************************************
@@ -98,6 +76,21 @@ public class HitRecord {
      */
 
 
+    @Override
+    public HitRecord hit(Ray ray, double tMin, double tMax) {
+        HitRecord tmpRecord=null;
+        double closest_so_far = Double.POSITIVE_INFINITY;
+
+        for (Hittable hittable : objectList) {
+            HitRecord rec = hittable.hit(ray,tMin,closest_so_far);
+            if (rec!=null){
+                closest_so_far=rec.getT();
+                tmpRecord = rec;
+            }
+        }
+
+        return tmpRecord;
+    }
 
     /*
      ***********************************************
@@ -107,7 +100,7 @@ public class HitRecord {
 
     @Override
     public String toString() {
-        return super.toString();
+       return "["+objectList.stream().map(x->x.toString()).collect(Collectors.joining(","))+"]";
     }
 
 

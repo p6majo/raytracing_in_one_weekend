@@ -1,5 +1,7 @@
 package com.p6majo.main;
 import com.p6majo.math.linalg.Vector3D;
+import com.p6majo.objects.HitRecord;
+import com.p6majo.objects.ListOfHittables;
 import com.p6majo.objects.Sphere;
 import com.p6majo.raytracing.Ray;
 import com.p6majo.raytracing.Renderer;
@@ -23,7 +25,7 @@ public class RayTracing {
      */
 
 
-
+    private ListOfHittables world;
     /*
      **********************************************
      ****           Constructors         **********
@@ -33,42 +35,17 @@ public class RayTracing {
 
     public RayTracing(){
 
-        Sphere sphere = new Sphere(0.5,new Vector3D(0,0,-1));
 
-        /**
-         * calculates, whether an intersection takes place between the ray x=o+t*v and the sphere (x-c)(x-c)=r*r
-         * (o+tv-c)(o+tv-c)-r*r=0
-         *
-         * oc = o-c
-         *
-         * oc*oc+2*t*oc*v+t*t+v*v-r*r=0
-         * t*t+2*oc*v/(v*v)*t+(oc*oc-r*r)/(v*v)=0
-         *
-         * b=2*oc*v
-         * c=oc*oc-r*r
-         *
-         * a=v*v
-         * discriminant**2=(b*b-c*a)/(v*v)**2
-         *
-         */
-        Function<Ray,Double> hitSphere = ray-> {
-            Vector3D oc = ray.getOrigin().sub(sphere.getCenter());
-            double a = ray.getDirection().dot(ray.getDirection());
-            double b = oc.dot(ray.getDirection());
-            double c = oc.dot(oc)-sphere.getR()*sphere.getR();
-            double discriminant = b*b-a*c;
-            if (discriminant<0)
-                return -1.;
-            else
-                return (-b-Math.sqrt(discriminant))/a;
-        };
+        world = new ListOfHittables();
+        world.add(new Sphere(0.5,new Vector3D(0,0,-1)));
+        world.add(new Sphere(100,new Vector3D(0,-100.5,-1)));
+
 
         Function<Ray, Color> rayColorFunction =
                 ray -> {
-                    double s = hitSphere.apply(ray);
-                    if (s>0.0){
-                        Vector3D normal = ray.at(s).sub(sphere.getCenter()).normalize();
-                        return new Color((int) (255*(1.+ normal.getX())/2), (int)(255*(1.+ normal.getY())/2), (int) (255*(1.+ normal.getZ())/2));
+                    HitRecord hit = world.hit(ray,0,Double.POSITIVE_INFINITY);
+                    if (hit!=null){
+                        return new Color((int)( 255*(hit.getNormal().getX()+1)/2),(int) (255*(hit.getNormal().getY()+1)/2),(int) (255*(hit.getNormal().getZ()+1)/2));
                     }
                     //background
                     Vector3D unitDirection = ray.getDirection().normalize();

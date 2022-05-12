@@ -131,8 +131,13 @@ public class Sphere implements Hittable{
 
         Vector3D point = ray.at(root);
         Vector3D normal = point.sub(center);
-        return new HitRecord(point,normal,root);
+        HitRecord rec= new HitRecord(point,normal,root);
+        if (rec!=null){
+            Vector3D outward_normal = rec.getP().sub(this.center).mul(1./this.r);
+            rec.setFaceNormal(ray,outward_normal);
+        }
+
+        return rec;
     };
 
-}
 }
