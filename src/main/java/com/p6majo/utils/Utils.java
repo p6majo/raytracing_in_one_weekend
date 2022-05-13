@@ -14,4 +14,8 @@ public class Utils {
         return x;
     }
 
+    public double randomDouble(double min,double max){
+        return min+(max-min)*Math.random();
+    }
+
 }

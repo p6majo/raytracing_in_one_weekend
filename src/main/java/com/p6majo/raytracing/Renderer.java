@@ -26,7 +26,9 @@ public class Renderer {
     private String name = (java.time.LocalTime.now()+"_DefaultImage.ppm").replace(':','-');
     public enum Quality {LOW,MEDIUM,HIGH};
 
-    private Function<Ray,Color> rayColorFunction;
+    private int samplesPerPixel =100;
+
+    private Function<Ray,Vector3D> rayColorFunction;
 
 
     /*
@@ -35,15 +37,15 @@ public class Renderer {
      **********************************************
      */
 
-    public Renderer(Function<Ray, Color> rayColorFunction){
+    public Renderer(Function<Ray, Vector3D> rayColorFunction){
         this(rayColorFunction,Camera.getDefaultCamera(),Quality.LOW);
     }
 
-    public Renderer(Function<Ray, Color> rayColorFunction,Camera camera){
+    public Renderer(Function<Ray, Vector3D> rayColorFunction,Camera camera){
         this(rayColorFunction,camera,Quality.LOW);
     }
 
-    public Renderer(Function<Ray, Color> rayColorFunction, Camera camera, Quality quality){
+    public Renderer(Function<Ray, Vector3D> rayColorFunction, Camera camera, Quality quality){
         this.camera=camera;
         this.rayColorFunction = rayColorFunction;
         double width=1920;
@@ -80,7 +82,7 @@ public class Renderer {
         return this.camera;
     }
 
-    public Function<Ray,Color> getRayColorFunction(){
+    public Function<Ray,Vector3D> getRayColorFunction(){
         return this.rayColorFunction;
     }
     /*
@@ -101,8 +103,6 @@ public class Renderer {
     /**
      * Scan the entire view port of the camera and write the color of each pixel to
      * a ppm image
-     * @param renderer
-     * @param path
      */
     public void render(){
 
@@ -111,18 +111,18 @@ public class Renderer {
         Color[] colors = new Color[width*height];
 
 
-        Vector3D origin = this.camera.getOrigin();
-        Vector3D lowerLeftCorner = this.camera.getLowerLeftCorner();
-        Vector3D horizontal = this.camera.getHorizontal();
-        Vector3D vertical = this.camera.getVertical();
-
         for (int h =0; h <height; h++) {
             for (int w = 0; w < width; w++) {
-                double u = (double) w / (width - 1);
-                double v = (double) h / (height - 1);
-                Ray ray = camera.getRay(u,v);
-                Color pixColor = rayColorFunction.apply(ray);
-                colors[w + (height-1-h) * width] = pixColor;
+                Vector3D color = Vector3D.getZERO();
+                for (int s = 0; s < samplesPerPixel; s++) {
+                    double u = ((double) w + Math.random()) / (width - 1);
+                    double v = ((double) h + Math.random()) / (height - 1);
+
+                    Ray ray = camera.getRay(u, v);
+                    color = color.add(rayColorFunction.apply(ray));
+                }
+                color=color.mul(255./samplesPerPixel);
+                colors[w + (height-1-h) * width] =new Color((int) color.getX(),(int) color.getY(), (int) color.getZ());
             }
         }
         this.image.setColors(colors);

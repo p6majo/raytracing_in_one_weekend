@@ -41,16 +41,16 @@ public class RayTracing {
         world.add(new Sphere(100,new Vector3D(0,-100.5,-1)));
 
 
-        Function<Ray, Color> rayColorFunction =
+        Function<Ray, Vector3D> rayColorFunction =
                 ray -> {
                     HitRecord hit = world.hit(ray,0,Double.POSITIVE_INFINITY);
                     if (hit!=null){
-                        return new Color((int)( 255*(hit.getNormal().getX()+1)/2),(int) (255*(hit.getNormal().getY()+1)/2),(int) (255*(hit.getNormal().getZ()+1)/2));
-                    }
+                        return hit.getNormal().add(new Vector3D(1,1,1)).mul(0.5);
+                     }
                     //background
                     Vector3D unitDirection = ray.getDirection().normalize();
                     double t = 0.5*(unitDirection.getY()+1.);
-                    return new Color((int) ((1.-t)*255+t*178),(int)((1-t)*255+t*0.7*255),255);
+                    return new Vector3D(1,1,1).mul(1-t).add(new Vector3D(0.5,0.7,1).mul(t));
                 };
 
         Renderer renderer = new Renderer(rayColorFunction);
