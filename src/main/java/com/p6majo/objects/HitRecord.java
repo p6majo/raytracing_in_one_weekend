@@ -1,5 +1,6 @@
 package com.p6majo.objects;
 
+import com.p6majo.material.Material;
 import com.p6majo.math.linalg.Vector3D;
 import com.p6majo.raytracing.Ray;
 
@@ -22,6 +23,7 @@ public class HitRecord {
     private Vector3D normal;
     private double t;
     private boolean frontFace;
+    private Material material;
 
     /*
      **********************************************
@@ -29,10 +31,11 @@ public class HitRecord {
      **********************************************
      */
 
-    public HitRecord(Vector3D p, Vector3D normal, double t) {
+    public HitRecord(Vector3D p, Vector3D normal, double t,Material material) {
         this.p = p;
         this.normal = normal;
         this.t = t;
+        this.material = material;
     }
 
 
@@ -53,6 +56,8 @@ public class HitRecord {
     public double getT() {
         return t;
     }
+
+    public Material getMaterial(){return this.material;}
 
     /*
      ***********************************************

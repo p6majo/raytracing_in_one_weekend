@@ -2,8 +2,10 @@ package com.p6majo.raytracing;
 
 import com.p6majo.image.PPMImage;
 import com.p6majo.math.linalg.Vector3D;
+import com.p6majo.utils.Utils;
 
 import java.awt.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -27,8 +29,10 @@ public class Renderer {
     public enum Quality {LOW,MEDIUM,HIGH};
 
     private int samplesPerPixel =100;
+    private int aliasingWidth=1;
+    private int maxDepth=50;
 
-    private Function<Ray,Vector3D> rayColorFunction;
+    private BiFunction<Ray,Integer,Vector3D> rayColorFunction;
 
 
     /*
@@ -37,15 +41,19 @@ public class Renderer {
      **********************************************
      */
 
-    public Renderer(Function<Ray, Vector3D> rayColorFunction){
+    public Renderer(BiFunction<Ray,Integer, Vector3D> rayColorFunction){
         this(rayColorFunction,Camera.getDefaultCamera(),Quality.LOW);
     }
 
-    public Renderer(Function<Ray, Vector3D> rayColorFunction,Camera camera){
+    public Renderer(BiFunction<Ray,Integer,Vector3D> rayColorFunction, Quality quality){
+        this(rayColorFunction,Camera.getDefaultCamera(),quality);
+    }
+
+    public Renderer(BiFunction<Ray,Integer, Vector3D> rayColorFunction,Camera camera){
         this(rayColorFunction,camera,Quality.LOW);
     }
 
-    public Renderer(Function<Ray, Vector3D> rayColorFunction, Camera camera, Quality quality){
+    public Renderer(BiFunction<Ray, Integer,Vector3D> rayColorFunction, Camera camera, Quality quality){
         this.camera=camera;
         this.rayColorFunction = rayColorFunction;
         double width=1920;
@@ -82,7 +90,7 @@ public class Renderer {
         return this.camera;
     }
 
-    public Function<Ray,Vector3D> getRayColorFunction(){
+    public BiFunction<Ray,Integer,Vector3D> getRayColorFunction(){
         return this.rayColorFunction;
     }
     /*
@@ -115,13 +123,15 @@ public class Renderer {
             for (int w = 0; w < width; w++) {
                 Vector3D color = Vector3D.getZERO();
                 for (int s = 0; s < samplesPerPixel; s++) {
-                    double u = ((double) w + Math.random()) / (width - 1);
-                    double v = ((double) h + Math.random()) / (height - 1);
+                    double u = ((double) w +aliasingWidth*(0.5- Math.random())) / (width - 1);
+                    double v = ((double) h +aliasingWidth*(0.5- Math.random())) / (height - 1);
 
                     Ray ray = camera.getRay(u, v);
-                    color = color.add(rayColorFunction.apply(ray));
+                    color = color.add(rayColorFunction.apply(ray,this.maxDepth));
                 }
-                color=color.mul(255./samplesPerPixel);
+                color=color.mul(1./samplesPerPixel);
+                color=Utils.vectorRoot(color).mul(255);
+                color= Utils.clamp(color,0,255);
                 colors[w + (height-1-h) * width] =new Color((int) color.getX(),(int) color.getY(), (int) color.getZ());
             }
         }

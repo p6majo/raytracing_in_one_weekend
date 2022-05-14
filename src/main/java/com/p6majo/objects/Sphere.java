@@ -1,5 +1,6 @@
 package com.p6majo.objects;
 
+import com.p6majo.material.Material;
 import com.p6majo.math.linalg.Vector3D;
 import com.p6majo.raytracing.Ray;
 
@@ -21,6 +22,7 @@ public class Sphere implements Hittable{
 
     private double r;
     private Vector3D center;
+    private Material material;
 
 
 
@@ -30,9 +32,10 @@ public class Sphere implements Hittable{
      **********************************************
      */
 
-    public Sphere(double r, Vector3D center) {
+    public Sphere(double r, Vector3D center,Material material) {
         this.r = r;
         this.center = center;
+        this.material = material;
     }
 
     /*
@@ -47,6 +50,10 @@ public class Sphere implements Hittable{
 
     public double getR() {
         return r;
+    }
+
+    public Material getMaterial(){
+        return material;
     }
 
     /*
@@ -131,7 +138,7 @@ public class Sphere implements Hittable{
 
         Vector3D point = ray.at(root);
         Vector3D normal = point.sub(center);
-        HitRecord rec= new HitRecord(point,normal,root);
+        HitRecord rec= new HitRecord(point,normal,root,material);
         if (rec!=null){
             Vector3D outward_normal = rec.getP().sub(this.center).mul(1./this.r);
             rec.setFaceNormal(ray,outward_normal);

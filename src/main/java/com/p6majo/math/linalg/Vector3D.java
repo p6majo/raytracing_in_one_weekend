@@ -28,6 +28,27 @@ public class Vector3D {
         return new Vector3D(0, 0, 0);
     }
     public static Vector3D random(double maxX, double maxY, double maxZ){ return new Vector3D(-maxX+2.*Math.random()*maxX,-maxY+2.*Math.random()*maxY,-maxZ+2.*Math.random()*maxZ); }
+    public static Vector3D randomInUnitSphere(){
+        while(true){
+            Vector3D vec = random(1,1,1);
+            if (vec.getNorm2()<=1)
+                return vec;
+        }
+    }
+    public static Vector3D randomUnitVector(){
+        while(true){
+            Vector3D vec = random(1,1,1);
+            if (vec.getNorm2()<=1)
+                return vec.normalize();
+        }
+    }
+    public static Vector3D randomInHemisphere(Vector3D normal){
+        Vector3D vec = randomInUnitSphere();
+        if (normal.dot(vec)<0)
+            return vec.neg();
+        else
+            return vec;
+    }
 
     /**
      * Parse vector3D from format "(x|y|z)"
@@ -82,6 +103,11 @@ public class Vector3D {
         return components;
     }
 
+    public  boolean nearZero(){
+        double s=1E-8;
+        return (Math.abs(x)<s) && (Math.abs(y)<s) && (Math.abs(z)<s);
+    }
+
     /************************/
     /****       setter    ***/
     /************************/
@@ -91,6 +117,9 @@ public class Vector3D {
     /****     public methods    ***/
     /******************************/
 
+    public Vector3D reflect(Vector3D normal){
+        return this.sub(normal.mul(2.*this.dot(normal)));
+    }
     public double getDistance(Vector3D point){
         return Math.sqrt(directionTo(point).getNorm2());
     }
@@ -150,6 +179,9 @@ public class Vector3D {
         return new Vector3D(newVec.getValue(0,0),newVec.getValue(1,0),newVec.getValue(2,0));
     }
 
+    public Vector3D hadamardProduct(Vector3D other){
+        return new Vector3D(this.x*other.x,this.y*other.y,this.z*other.z);
+    }
 
     /******************************/
     /****     private methods   ***/
