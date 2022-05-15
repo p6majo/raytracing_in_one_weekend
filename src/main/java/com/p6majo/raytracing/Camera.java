@@ -21,11 +21,15 @@ public class Camera {
     private double viewportHeight=2.0;
     private double viewportWidth=aspectRatio*viewportHeight;
     private double focalLength = 1.;
+    private double theta = Math.PI/2; // vertical field of view
+    private Vector3D lookFrom;
+    private Vector3D lookAt;
+    private Vector3D vup;
 
-    Vector3D origin = Vector3D.getZERO();
-    Vector3D horizontal = new Vector3D(viewportWidth,0,0);
-    Vector3D vertical = new Vector3D(0,viewportHeight,0);
-    Vector3D lowerLeftCorner = origin.sub(horizontal.mul(0.5)).sub(vertical.mul(0.5)).sub(new Vector3D(0,0,focalLength));
+    private Vector3D origin = Vector3D.getZERO();
+    private Vector3D horizontal = new Vector3D(viewportWidth,0,0);
+    private Vector3D vertical = new Vector3D(0,viewportHeight,0);
+    private Vector3D lowerLeftCorner = origin.sub(horizontal.mul(0.5)).sub(vertical.mul(0.5)).sub(new Vector3D(0,0,focalLength));
 
 
     /*
@@ -34,13 +38,32 @@ public class Camera {
      **********************************************
      */
 
-    public Camera(double aspectRatio,double viewportHeight,double focalLength){
+    public Camera(double vertFov, double aspectRatio,double viewportHeight,double focalLength){
+        this.theta = vertFov/180*Math.PI;
+        double h = Math.tan(theta/2);
         this.aspectRatio=aspectRatio;
-        this.viewportHeight=viewportHeight;
-        this.viewportWidth=aspectRatio*viewportHeight;
+        this.viewportHeight=2.*h;
         this.focalLength = focalLength;
+        initialize();
     }
 
+    public Camera(double vertFov,Vector3D lookFrom, Vector3D lookAt, Vector3D vup, double aspectRatio){
+        this.theta = vertFov/180*Math.PI;
+        double h = Math.tan(theta/2);
+        this.viewportHeight=2.*h;
+        this.lookFrom = lookFrom;
+        this.lookAt = lookAt;
+        this.vup = vup;
+        initialize();
+
+    }
+
+    private void initialize(){
+        this.viewportWidth=aspectRatio*viewportHeight;
+        horizontal = new Vector3D(viewportWidth,0,0);
+        vertical = new Vector3D(0,viewportHeight,0);
+        lowerLeftCorner = origin.sub(horizontal.mul(0.5)).sub(vertical.mul(0.5)).sub(new Vector3D(0,0,focalLength));
+    }
 
     /**
      * Constructor for a default camera

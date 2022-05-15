@@ -1,29 +1,25 @@
-package com.p6majo.objects;
+package com.p6majo.material;
 
-import com.p6majo.material.Material;
 import com.p6majo.math.linalg.Vector3D;
+import com.p6majo.objects.HitRecord;
 import com.p6majo.raytracing.Ray;
+import com.p6majo.raytracing.RayWithAttenuation;
 
 /**
- * The class HitRecord
+ * The class DiElectric
  *
- * @author p6maj
- * @version 2022-05-11
+ * @author p6majo
+ * @version 2022-05-15
  */
-public class HitRecord {
-
+public class DiElectric extends Material{
 
     /*
      *********************************************
      ***           Attributes           **********
      *********************************************
      */
+    private double ir = 1;
 
-    private Vector3D p;
-    private Vector3D normal;
-    private double t;
-    private boolean frontFace;
-    private Material material;
 
     /*
      **********************************************
@@ -31,37 +27,16 @@ public class HitRecord {
      **********************************************
      */
 
-    public HitRecord(Vector3D p, Vector3D normal, double t,Material material) {
-        this.p = p;
-        this.normal = normal;
-        this.t = t;
-        this.material = material;
+    public DiElectric(double indexOfRefraction){
+        ir = indexOfRefraction;
     }
-
-
     /*
      ***********************************************
      ***           Getters              ************
      ***********************************************
      */
 
-    public Vector3D getP() {
-        return p;
-    }
 
-    public Vector3D getNormal() {
-        return normal;
-    }
-
-    public double getT() {
-        return t;
-    }
-
-    public Material getMaterial(){return this.material;}
-
-    public boolean isFrontFace(){
-        return this.frontFace;
-    }
 
     /*
      ***********************************************
@@ -69,17 +44,7 @@ public class HitRecord {
      ***********************************************
      */
 
-//    public void setP(Vector3D p) {
-//        this.p = p;
-//    }
-//
-//    public void setNormal(Vector3D normal) {
-//        this.normal = normal;
-//    }
-//
-//    public void setT(double t) {
-//        this.t = t;
-//    }
+
 
     /*
      ***********************************************
@@ -87,11 +52,6 @@ public class HitRecord {
      ***********************************************
      */
 
-    public void setFaceNormal(Ray ray, Vector3D outwardNormal){
-        frontFace = ray.getDirection().dot(outwardNormal)<0;
-        normal=frontFace? outwardNormal:outwardNormal.neg();
-
-    }
 
     /*
      ***********************************************
@@ -106,8 +66,6 @@ public class HitRecord {
      ***********************************************
      */
 
-
-
     /*
      ***********************************************
      ***           toString             ************
@@ -115,10 +73,38 @@ public class HitRecord {
      */
 
     @Override
+    public RayWithAttenuation scatter(Ray rayIn, HitRecord rec) {
+        Vector3D unitIn = rayIn.getDirection().normalize();
+
+        double refractionRatio = rec.isFrontFace()?1.0/ir:ir;
+
+        double cosTheta = Math.min(unitIn.dot(rec.getNormal().neg()),1.);
+        double sinTheta = Math.sqrt(1.-cosTheta*cosTheta);
+
+        boolean reflection = refractionRatio*sinTheta>1.0;
+
+        Vector3D direction = null;
+        if (reflection || reflectance(cosTheta,refractionRatio)>Math.random()){
+            direction = unitIn.reflect(rec.getNormal());
+        }
+        else{
+            direction = unitIn.refract(rec.getNormal(),refractionRatio);
+        }
+
+        return new RayWithAttenuation(rec.getP(),direction,new Vector3D(1,1,1));
+    }
+
+    private double reflectance(double cosine, double ref_idx) {
+            // Use Schlick's approximation for reflectance.
+           double r0 = (1.-ref_idx) / (1+ref_idx);
+            r0 = r0*r0;
+            return r0 + (1-r0)*Math.pow((1 - cosine),5);
+    }
+
+    @Override
     public String toString() {
         return super.toString();
     }
-
 
 
 }

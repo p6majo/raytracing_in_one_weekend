@@ -117,9 +117,28 @@ public class Vector3D {
     /****     public methods    ***/
     /******************************/
 
+    /**
+     * reflect vector
+     * @param normal
+     * @return
+     */
     public Vector3D reflect(Vector3D normal){
         return this.sub(normal.mul(2.*this.dot(normal)));
     }
+
+    /**
+     * refract vector
+     * @param normal normal vector
+     * @param n1OverN2 ratio of refraction indices
+     * @return
+     */
+    public Vector3D refract(Vector3D normal, double n1OverN2){
+        double cosTheta = Math.min(-this.dot(normal),1);
+        Vector3D outPerp = this.add(normal.mul(cosTheta)).mul(n1OverN2);
+        Vector3D out_parallel = normal.mul(-Math.sqrt(Math.abs(1.- outPerp.getNorm2())));
+        return outPerp.add(out_parallel);
+    }
+
     public double getDistance(Vector3D point){
         return Math.sqrt(directionTo(point).getNorm2());
     }

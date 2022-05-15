@@ -28,7 +28,7 @@ public class Renderer {
     private String name = (java.time.LocalTime.now()+"_DefaultImage.ppm").replace(':','-');
     public enum Quality {LOW,MEDIUM,HIGH};
 
-    private int samplesPerPixel =100;
+    private int samplesPerPixel =50;
     private int aliasingWidth=1;
     private int maxDepth=50;
 

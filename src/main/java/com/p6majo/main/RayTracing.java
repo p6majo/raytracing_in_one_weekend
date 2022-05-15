@@ -1,4 +1,5 @@
 package com.p6majo.main;
+import com.p6majo.material.DiElectric;
 import com.p6majo.material.Lambertian;
 import com.p6majo.material.Material;
 import com.p6majo.material.Metal;
@@ -9,6 +10,7 @@ import com.p6majo.math.mandel.MandelIterator;
 import com.p6majo.objects.HitRecord;
 import com.p6majo.objects.ListOfHittables;
 import com.p6majo.objects.Sphere;
+import com.p6majo.raytracing.Camera;
 import com.p6majo.raytracing.Ray;
 import com.p6majo.raytracing.RayWithAttenuation;
 import com.p6majo.raytracing.Renderer;
@@ -82,11 +84,12 @@ public class RayTracing {
         };
         Material ground =new Lambertian(new Vector3D(0.8,0.8,0.0));
         Material center = new Lambertian(mandelFunction);
-        Material left = new Metal(new Vector3D(0.8,0.8,0.8));
+        Material left = new DiElectric(1.5);
         Material right = new Metal(new Vector3D(0.8,0.6,0.2));
 
         world.add(new Sphere(1,new Vector3D(0,0.5,-2),center));
         world.add(new Sphere(0.5,new Vector3D(-1,0,-1),left));
+        world.add(new Sphere(-0.4,new Vector3D(-1,0,-1),left));
         world.add(new Sphere(0.5,new Vector3D(1,0,-1),right));
         world.add(new Sphere(100,new Vector3D(0,-100.5,-1),ground));
 
@@ -120,7 +123,7 @@ public class RayTracing {
                     return new Vector3D(1,1,1).mul(1-t).add(new Vector3D(0.5,0.7,1).mul(t));
                 };
 
-        Renderer renderer = new Renderer(rayColorFunctions[0], Renderer.Quality.HIGH);
+        Renderer renderer = new Renderer(rayColorFunctions[0],new Camera(120), Renderer.Quality.MEDIUM);
         renderer.render();
     }
 
