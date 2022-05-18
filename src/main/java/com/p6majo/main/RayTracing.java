@@ -9,6 +9,7 @@ import com.p6majo.math.linalg.Vector3D;
 import com.p6majo.math.mandel.MandelIterator;
 import com.p6majo.objects.HitRecord;
 import com.p6majo.objects.ListOfHittables;
+import com.p6majo.objects.MandelSphere;
 import com.p6majo.objects.Sphere;
 import com.p6majo.raytracing.Camera;
 import com.p6majo.raytracing.Ray;
@@ -76,18 +77,31 @@ public class RayTracing {
             if (steps==255)
                 return Vector3D.getZERO();
             else if (steps>255*0.9)
-                return new Vector3D(1,1,1);
+                return new Vector3D((double) steps/255,(double) steps/255,(double) steps/255);
             else{
                 return new Vector3D((double) steps/(255*0.9),0,0);
             }
+        };
+
+        Function<Vector3D,Double> mandelHeightFunction= o -> {
+            //Stereographic projection
+            double u = o.getX()/(1.-o.getZ());
+            double v = o.getY()/(1.-o.getZ());
+            int steps = iterator.iterations(new Complex(u,v));
+            //System.out.println(u + "+i" + v + " -> " + steps);
+
+            return 1.+(double) steps/255;
+
 
         };
+
+
         Material ground =new Lambertian(new Vector3D(0.8,0.8,0.0));
         Material center = new Lambertian(mandelFunction);
         Material left = new DiElectric(1.5);
         Material right = new Metal(new Vector3D(0.8,0.6,0.2));
 
-        world.add(new Sphere(1,new Vector3D(0,0.5,-2),center));
+        world.add(new MandelSphere(1,new Vector3D(0,0.5,-2),center,mandelHeightFunction));
         world.add(new Sphere(0.5,new Vector3D(-1,0,-1),left));
         world.add(new Sphere(-0.4,new Vector3D(-1,0,-1),left));
         world.add(new Sphere(0.5,new Vector3D(1,0,-1),right));
@@ -96,6 +110,7 @@ public class RayTracing {
         //capture function inside an array to avoid problem of
         //possible uninitialized function in the case of recursive call
 
+        //the integer keeps track of the number of bounces allowed by the ray to perform before it has to hit the camera
         BiFunction<Ray,Integer, Vector3D>[] rayColorFunctions = new BiFunction[]{null};
         rayColorFunctions[0] =
                 (ray,depth) -> {
@@ -123,7 +138,7 @@ public class RayTracing {
                     return new Vector3D(1,1,1).mul(1-t).add(new Vector3D(0.5,0.7,1).mul(t));
                 };
 
-        Renderer renderer = new Renderer(rayColorFunctions[0],new Camera(120), Renderer.Quality.MEDIUM);
+        Renderer renderer = new Renderer(rayColorFunctions[0],new Camera(), Renderer.Quality.LOW);
         renderer.render();
     }
 

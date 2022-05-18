@@ -1,0 +1,176 @@
+package com.p6majo.objects;
+
+import com.p6majo.material.Material;
+import com.p6majo.math.linalg.Vector3D;
+import com.p6majo.raytracing.Ray;
+
+import java.util.function.Function;
+
+/**
+ * The class MandelSphere
+ *
+ * It is a sphere with a profile. The profile is provided by the color function
+ *
+ * @author p6majo
+ * @version 2022-05-18
+ */
+public class MandelSphere implements Hittable{
+
+    /*
+     *********************************************
+     ***           Attributes           **********
+     *********************************************
+     */
+
+    private double r;
+    private Vector3D center;
+    private Material material;
+    private Function<Vector3D,Double> heightFunction;
+
+
+
+    /*
+     **********************************************
+     ****           Constructors         **********
+     **********************************************
+     */
+
+    public MandelSphere(double r, Vector3D center, Material material, Function<Vector3D, Double> heightFunction) {
+        this.r = r;
+        this.center = center;
+        this.material = material;
+        this.heightFunction=heightFunction;
+    }
+
+    /*
+     ***********************************************
+     ***           Getters              ************
+     ***********************************************
+     */
+
+    public Vector3D getCenter() {
+        return center;
+    }
+
+    public double getR() {
+        return r;
+    }
+
+    public Material getMaterial(){
+        return material;
+    }
+
+    /*
+     ***********************************************
+     ***           Setters              ************
+     ***********************************************
+     */
+
+
+
+    /*
+     ***********************************************
+     ***           Public methods       ************
+     ***********************************************
+     */
+
+
+    /*
+     ***********************************************
+     ***           Private methods      ************
+     ***********************************************
+     */
+
+    private Double[] calculateIntersectionWithSphere(Ray ray, Vector3D center, double r){
+        double root = 0;
+        Vector3D oc = ray.getOrigin().sub(this.center);
+        double a = ray.getDirection().dot(ray.getDirection());
+        double half_b = oc.dot(ray.getDirection());
+        double c = oc.dot(oc)-this.r*this.r;
+        double discriminant = half_b*half_b-a*c;
+        if (discriminant<0)
+            return null;
+        else {
+            //find the neares root that lies in the acceptable range.
+            double sq = Math.sqrt(discriminant);
+            double root1 = (-half_b-sq)/a;
+            double root2 = (-half_b+sq)/a;
+            return new Double[]{root1,root2};
+        }
+    }
+    /*
+     ***********************************************
+     ***           Overrides            ************
+     ***********************************************
+     */
+
+    /*
+     ***********************************************
+     ***           toString             ************
+     ***********************************************
+     */
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+
+
+    @Override
+    /**
+     * calculates, whether an intersection takes place between the ray x=o+t*v and the sphere (x-c)(x-c)=r*r
+     * (o+tv-c)(o+tv-c)-r*r=0
+     *
+     * oc = o-c
+     *
+     * oc*oc+2*t*oc*v+t*t+v*v-r*r=0
+     * t*t+2*oc*v/(v*v)*t+(oc*oc-r*r)/(v*v)=0
+     *
+     * b=2*oc*v
+     * c=oc*oc-r*r
+     *
+     * a=v*v
+     * discriminant**2=(b*b-c*a)/(v*v)**2
+     *
+     */
+    public HitRecord hit(Ray ray, double tMin, double tMax) {
+
+        double r = this.r;
+        double diff= Double.POSITIVE_INFINITY;
+        double root =0;
+        Vector3D point = null;
+        boolean first = true;
+        while(diff>1) {
+            Double[] roots = calculateIntersectionWithSphere(ray, this.center, r);
+
+            if (roots == null)
+                return null;
+            root = roots[0];
+            if (root < tMin || tMax < root) {
+                root = roots[1];
+                if (root < tMin || tMax < root)
+                    return null;
+            }
+
+            point = ray.at(root);
+            //the point always has to be scaled down to the original sphere size
+            Vector3D pointOnSphere = this.center.add(point.sub(this.center).mul(this.r/r));
+            double height = this.heightFunction.apply(pointOnSphere);
+            diff = Math.abs(height*this.r-r);
+            System.out.println(diff);
+            r=height;
+        }
+
+        Vector3D normal = point.sub(center);
+
+
+        HitRecord rec= new HitRecord(point,normal,root,material);
+        if (rec!=null){
+            Vector3D outward_normal = rec.getP().sub(this.center).mul(1./this.r);
+            rec.setFaceNormal(ray,outward_normal);
+        }
+
+        return rec;
+    };
+
+}
