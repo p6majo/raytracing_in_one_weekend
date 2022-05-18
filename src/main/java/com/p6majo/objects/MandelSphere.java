@@ -14,7 +14,7 @@ import java.util.function.Function;
  * @author p6majo
  * @version 2022-05-18
  */
-public class MandelSphere implements Hittable{
+public class MandelSphere extends Sphere{
 
     /*
      *********************************************
@@ -22,9 +22,6 @@ public class MandelSphere implements Hittable{
      *********************************************
      */
 
-    private double r;
-    private Vector3D center;
-    private Material material;
     private Function<Vector3D,Double> heightFunction;
 
 
@@ -36,9 +33,7 @@ public class MandelSphere implements Hittable{
      */
 
     public MandelSphere(double r, Vector3D center, Material material, Function<Vector3D, Double> heightFunction) {
-        this.r = r;
-        this.center = center;
-        this.material = material;
+        super(r,center,material);
         this.heightFunction=heightFunction;
     }
 
@@ -47,18 +42,6 @@ public class MandelSphere implements Hittable{
      ***           Getters              ************
      ***********************************************
      */
-
-    public Vector3D getCenter() {
-        return center;
-    }
-
-    public double getR() {
-        return r;
-    }
-
-    public Material getMaterial(){
-        return material;
-    }
 
     /*
      ***********************************************
@@ -81,23 +64,7 @@ public class MandelSphere implements Hittable{
      ***********************************************
      */
 
-    private Double[] calculateIntersectionWithSphere(Ray ray, Vector3D center, double r){
-        double root = 0;
-        Vector3D oc = ray.getOrigin().sub(this.center);
-        double a = ray.getDirection().dot(ray.getDirection());
-        double half_b = oc.dot(ray.getDirection());
-        double c = oc.dot(oc)-this.r*this.r;
-        double discriminant = half_b*half_b-a*c;
-        if (discriminant<0)
-            return null;
-        else {
-            //find the neares root that lies in the acceptable range.
-            double sq = Math.sqrt(discriminant);
-            double root1 = (-half_b-sq)/a;
-            double root2 = (-half_b+sq)/a;
-            return new Double[]{root1,root2};
-        }
-    }
+
     /*
      ***********************************************
      ***           Overrides            ************
@@ -135,41 +102,53 @@ public class MandelSphere implements Hittable{
      */
     public HitRecord hit(Ray ray, double tMin, double tMax) {
 
-        double r = this.r;
-        double diff= Double.POSITIVE_INFINITY;
-        double root =0;
-        Vector3D point = null;
-        boolean first = true;
-        while(diff>1) {
-            Double[] roots = calculateIntersectionWithSphere(ray, this.center, r);
-
-            if (roots == null)
-                return null;
-            root = roots[0];
-            if (root < tMin || tMax < root) {
-                root = roots[1];
-                if (root < tMin || tMax < root)
-                    return null;
+        Double lambda = super.calculateIntersectionWithSphere(ray, tMin, tMax);
+        if (lambda == null)
+            return null;
+        int count = 0;
+        double dl = (lambda - tMin) / 10;
+        while (dl>0.01) {
+            //now raymarching between tMin and lambda
+            dl = (lambda - tMin) / 10;
+            double minDiff = 1./0;
+            int minDiffIndex = 0;
+            int i = 0;
+            for (i = 0; i < 11; i++) {
+                double l = tMin + dl * i;
+                Vector3D pr = ray.at(l);
+                double rayHeight = pr.sub(getCenter()).length();
+                double sphereHeight = heightFunction.apply(pr.mul(getR() / rayHeight)); //calculate the height at the bottom of the sphere's surface
+                double diff =Math.abs(rayHeight-sphereHeight);
+                if (diff<minDiff){
+                    minDiff=diff;
+                    minDiffIndex = i;
+                }
+                if (rayHeight < sphereHeight){
+                    tMin = tMin+dl*(i-2);
+                    lambda = tMin+dl*(i+2);
+                    break;//for loop
+                }
             }
-
-            point = ray.at(root);
-            //the point always has to be scaled down to the original sphere size
-            Vector3D pointOnSphere = this.center.add(point.sub(this.center).mul(this.r/r));
-            double height = this.heightFunction.apply(pointOnSphere);
-            diff = Math.abs(height*this.r-r);
-            System.out.println(diff);
-            r=height;
+            if (i>10){//no refinement of the interval return ray of shortest diff
+                lambda = tMin+dl*minDiffIndex;
+                break; //while loop
+            }
+            count++;
+            if (count>20){
+                System.out.println(count);
+            }
         }
 
-        Vector3D normal = point.sub(center);
+        Vector3D point = ray.at(lambda);
+        Vector3D normal = point.sub(super.getCenter());
 
 
-        HitRecord rec= new HitRecord(point,normal,root,material);
+        HitRecord rec= new HitRecord(point,normal,lambda,getMaterial());
+        rec.setRadius(getR()); //set radius of the sphere to calculate accurate colors
         if (rec!=null){
-            Vector3D outward_normal = rec.getP().sub(this.center).mul(1./this.r);
+            Vector3D outward_normal = rec.getP().sub(super.getCenter()).mul(1./getR());
             rec.setFaceNormal(ray,outward_normal);
         }
-
         return rec;
     };
 

@@ -22,9 +22,9 @@ public class Camera {
     private double viewportWidth=aspectRatio*viewportHeight;
     private double focalLength = 1.;
     private double theta = Math.PI/2; // vertical field of view
-    private Vector3D lookFrom;
-    private Vector3D lookAt;
-    private Vector3D vup;
+    private Vector3D lookFrom=new Vector3D(-1,1,0.5);
+    private Vector3D lookAt=new Vector3D(0,0,-1);
+    private Vector3D vup=new Vector3D(0,1,0);
 
     private Vector3D origin = Vector3D.getZERO();
     private Vector3D horizontal = new Vector3D(viewportWidth,0,0);
@@ -59,17 +59,22 @@ public class Camera {
     }
 
     private void initialize(){
+        Vector3D w =lookFrom.sub(lookAt).normalize();
+        Vector3D u = vup.cross(w).normalize();
+        Vector3D v = w.cross(u);
+
         this.viewportWidth=aspectRatio*viewportHeight;
-        horizontal = new Vector3D(viewportWidth,0,0);
-        vertical = new Vector3D(0,viewportHeight,0);
-        lowerLeftCorner = origin.sub(horizontal.mul(0.5)).sub(vertical.mul(0.5)).sub(new Vector3D(0,0,focalLength));
+        origin = lookFrom;
+        horizontal = u.mul(viewportWidth);
+        vertical = v.mul(viewportHeight);
+        lowerLeftCorner = origin.sub(horizontal.mul(0.5)).sub(vertical.mul(0.5)).sub(w.mul(focalLength));
     }
 
     /**
      * Constructor for a default camera
      */
     public Camera(){
-
+        initialize();
     }
 
 

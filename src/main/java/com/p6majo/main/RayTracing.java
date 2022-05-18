@@ -68,8 +68,9 @@ public class RayTracing {
 
         world = new ListOfHittables();
 
-        Function<Vector3D,Vector3D> mandelFunction= o -> {
+        BiFunction<Vector3D,Double, Vector3D> mandelFunction= (o,r) -> {
             //Stereographic projection
+            o=o.mul(r/o.length()); //normalize the point to the surface of the sphere, the point can be above the surface due to displacement
             double u = o.getX()/(1.-o.getZ());
             double v = o.getY()/(1.-o.getZ());
             int steps = iterator.iterations(new Complex(u,v));
@@ -87,8 +88,10 @@ public class RayTracing {
             //Stereographic projection
             double u = o.getX()/(1.-o.getZ());
             double v = o.getY()/(1.-o.getZ());
+
             int steps = iterator.iterations(new Complex(u,v));
             //System.out.println(u + "+i" + v + " -> " + steps);
+
 
             return 1.+(double) steps/255;
 
@@ -138,7 +141,7 @@ public class RayTracing {
                     return new Vector3D(1,1,1).mul(1-t).add(new Vector3D(0.5,0.7,1).mul(t));
                 };
 
-        Renderer renderer = new Renderer(rayColorFunctions[0],new Camera(), Renderer.Quality.LOW);
+        Renderer renderer = new Renderer(rayColorFunctions[0],new Camera(), Renderer.Quality.HIGH);
         renderer.render();
     }
 

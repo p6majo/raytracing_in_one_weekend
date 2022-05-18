@@ -24,7 +24,7 @@ public class Lambertian extends Material{
      */
 
     protected Vector3D albedo;
-    protected Function<Vector3D,Vector3D> albedoFunction;
+    protected BiFunction<Vector3D,Double, Vector3D> albedoFunction;
 
     /*
      **********************************************
@@ -35,7 +35,7 @@ public class Lambertian extends Material{
     public Lambertian(Vector3D color){
         this.albedo = color;
     }
-    public Lambertian(Function<Vector3D,Vector3D> albedoFunction){
+    public Lambertian(BiFunction<Vector3D,Double,Vector3D> albedoFunction){
         this.albedoFunction = albedoFunction;
     }
     /*
@@ -94,7 +94,7 @@ public class Lambertian extends Material{
         if (this.albedoFunction==null)
             localAlbedo = this.albedo;
         else
-            localAlbedo = this.albedoFunction.apply(rec.getP());
+            localAlbedo = this.albedoFunction.apply(rec.getP(),rec.getRadius());
 
         RayWithAttenuation scattered = new RayWithAttenuation(rec.getP(),scatterDirection,localAlbedo);
         return scattered;

@@ -31,7 +31,6 @@ public class Metal extends Lambertian{
     public Metal(Vector3D color) {
         super(color);
     }
-    public Metal(Function<Vector3D,Vector3D> albedoFunction){super(albedoFunction);}
 
     /*
      ***********************************************
@@ -80,10 +79,9 @@ public class Metal extends Lambertian{
         Vector3D reflected = rayIn.getDirection().reflect(rec.getNormal());
 
         Vector3D localAlbedo = null;
-        if (this.albedoFunction==null)
-            localAlbedo = this.albedo;
-        else
-            localAlbedo = this.albedoFunction.apply(rec.getP());
+
+        localAlbedo = this.albedo;
+
 
         RayWithAttenuation scattered = new RayWithAttenuation(rec.getP(),reflected,localAlbedo);
         if (scattered.getDirection().dot(rec.getNormal())>0)

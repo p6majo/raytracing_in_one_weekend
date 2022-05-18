@@ -24,6 +24,7 @@ public class HitRecord {
     private double t;
     private boolean frontFace;
     private Material material;
+    private double radius;
 
     /*
      **********************************************
@@ -63,11 +64,19 @@ public class HitRecord {
         return this.frontFace;
     }
 
+    public double getRadius(){
+        return this.radius;
+    }
+
     /*
      ***********************************************
      ***           Setters              ************
      ***********************************************
      */
+
+    public void setRadius(double r){
+        this.radius=r;
+    }
 
 //    public void setP(Vector3D p) {
 //        this.p = p;

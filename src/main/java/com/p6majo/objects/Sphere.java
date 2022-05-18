@@ -77,6 +77,43 @@ public class Sphere implements Hittable{
      ***********************************************
      */
 
+    /**
+     * calculates, whether an intersection takes place between the ray x=o+t*v and the sphere (x-c)(x-c)=r*r
+     * (o+tv-c)(o+tv-c)-r*r=0
+     *
+     * oc = o-c
+     *
+     * oc*oc+2*t*oc*v+t*t+v*v-r*r=0
+     * t*t+2*oc*v/(v*v)*t+(oc*oc-r*r)/(v*v)=0
+     *
+     * b=2*oc*v
+     * c=oc*oc-r*r
+     *
+     * a=v*v
+     * discriminant**2=(b*b-c*a)/(v*v)**2
+     *
+     */
+    protected Double calculateIntersectionWithSphere(Ray ray, double tMin, double tMax) {
+        double root = 0;
+        Vector3D oc = ray.getOrigin().sub(this.center);
+        double a = ray.getDirection().dot(ray.getDirection());
+        double half_b = oc.dot(ray.getDirection());
+        double c = oc.dot(oc) - r * r;
+        double discriminant = half_b * half_b - a * c;
+        if (discriminant < 0)
+            return null;
+        else {
+            //find the neares root that lies in the acceptable range.
+            double sq = Math.sqrt(discriminant);
+            root = (-half_b - sq) / a;
+            if (root < tMin || tMax < root) {
+                root = (-half_b + sq) / a;
+                if (root < tMin || tMax < root)
+                    return null;
+            }
+            return root;
+        }
+    }
 
     /*
      ***********************************************
@@ -99,42 +136,8 @@ public class Sphere implements Hittable{
     @Override
 
     public HitRecord hit(Ray ray, double tMin, double tMax) {
-        /**
-         * calculates, whether an intersection takes place between the ray x=o+t*v and the sphere (x-c)(x-c)=r*r
-         * (o+tv-c)(o+tv-c)-r*r=0
-         *
-         * oc = o-c
-         *
-         * oc*oc+2*t*oc*v+t*t+v*v-r*r=0
-         * t*t+2*oc*v/(v*v)*t+(oc*oc-r*r)/(v*v)=0
-         *
-         * b=2*oc*v
-         * c=oc*oc-r*r
-         *
-         * a=v*v
-         * discriminant**2=(b*b-c*a)/(v*v)**2
-         *
-         */
-        double root = 0;
-        Vector3D oc = ray.getOrigin().sub(this.center);
-        double a = ray.getDirection().dot(ray.getDirection());
-        double half_b = oc.dot(ray.getDirection());
-        double c = oc.dot(oc)-this.r*this.r;
-        double discriminant = half_b*half_b-a*c;
-        if (discriminant<0)
-            return null;
-        else {
-            //find the neares root that lies in the acceptable range.
-            double sq = Math.sqrt(discriminant);
-            root = (-half_b-sq)/a;
-            if (root<tMin||tMax<root) {
-                root=(-half_b+sq)/a;
-                if (root<tMin||tMax<root)
-                    return null;
-            }
-
-        }
-
+        Double root = calculateIntersectionWithSphere(ray,tMin,tMax);
+        if (root == null) return null;
 
         Vector3D point = ray.at(root);
         Vector3D normal = point.sub(center);
